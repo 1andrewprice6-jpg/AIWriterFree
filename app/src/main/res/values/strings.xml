@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">AI Writer Free</string>
+    <string name="processing">Processing text...</string>
+    <string name="error_model_not_loaded">Model not loaded. Please open AI Writer app.</string>
+    <string name="download_model">Download AI Model</string>
+    <string name="model_ready">AI Model Ready</string>
+    <string name="select_action">Select an action:</string>
+</resources>
