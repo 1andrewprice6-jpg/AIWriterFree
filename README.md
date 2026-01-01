@@ -1,8 +1,33 @@
 # AI Writer Free - Complete Edition
 
+[![Android](https://img.shields.io/badge/Platform-Android-green.svg)](https://android.com)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![API](https://img.shields.io/badge/API-26%2B-brightgreen.svg)](https://android-arsenal.com/api?level=26)
+
 A fully-featured AI writing assistant for Android that runs completely on-device with optional web search enhancement.
 
-## 🔥 FIXES IMPLEMENTED
+## ✨ Latest Fixes (v2.0)
+
+### 🎯 Scrolling Issue Fixed
+- Wrapped main layout in `ScrollView` with proper viewport configuration
+- Content now scrolls smoothly on all screen sizes
+- Fixed UI cutoff on smaller devices
+
+### 🛠️ Model Loading Improvements
+- **Better error handling** - Clear messages when model isn't loaded
+- **Formatting works instantly** - No model download needed for formatting tasks
+- **Graceful degradation** - All formatting/styling options work immediately
+- **Smart initialization** - Attempts to initialize model only when needed
+
+### 📱 Works Without Model Download
+The following features work **immediately** without downloading the 1.5GB AI model:
+- ✅ All text formatting (Bold, Italic, Underline, etc.)
+- ✅ All case conversions (UPPERCASE, lowercase, Title Case, etc.)
+- ✅ All font sizes (Tiny, Small, Large, Huge)
+- ✅ All fancy fonts (𝗕𝗼𝗹𝗱, 𝓢𝓬𝓻𝓲𝓹𝓽, Ⓒⓘⓡⓒⓛⓔⓓ, etc.)
+- ✅ All emoji decorations (✨ Sparkle, 🔥 Fire, ⭐ Star, 🎉 Celebrate)
+
+## 🔥 Previous Fixes
 
 ### Background Download Service
 - **NEW**: `ModelDownloadService` - Proper foreground service implementation
