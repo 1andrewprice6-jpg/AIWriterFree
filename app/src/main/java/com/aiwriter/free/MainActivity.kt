@@ -21,6 +21,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 class MainActivity : AppCompatActivity() {
     
@@ -157,41 +161,71 @@ class MainActivity : AppCompatActivity() {
         try {
             Toast.makeText(this, "Button clicked!", Toast.LENGTH_LONG).show()
             
-            // Check if already downloaded
-            if (aiEngine.isModelDownloaded()) {
-                Toast.makeText(this, "Model already downloaded!", Toast.LENGTH_LONG).show()
-                updateUI()
-                return
-            }
-            
-            // Check notification permission for Android 13+
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                val hasPermission = ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED
-                
-                Toast.makeText(
-                    this, 
-                    "Android ${Build.VERSION.SDK_INT}, Notification permission: $hasPermission",
-                    Toast.LENGTH_LONG
-                ).show()
-                
-                when {
-                    hasPermission -> {
-                        startDownloadService()
+            // Simple direct download test
+            Thread {
+                try {
+                    Toast.makeText(this@MainActivity, "Starting download in thread...", Toast.LENGTH_LONG).show()
+                    
+                    val outputFile = File(filesDir, "qwen2.5-1.5b-q4.onnx")
+                    val url = URL("https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-ONNX/resolve/main/qwen2.5-1.5b-instruct-q4.onnx")
+                    
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "Connecting to $url", Toast.LENGTH_LONG).show()
+                        downloadButton.isEnabled = false
+                        progressBar.visibility = View.VISIBLE
+                        progressText.visibility = View.VISIBLE
+                        statusText.text = "Downloading..."
                     }
-                    else -> {
-                        Toast.makeText(this, "Requesting notification permission...", Toast.LENGTH_LONG).show()
-                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    
+                    val connection = url.openConnection() as HttpURLConnection
+                    connection.connect()
+                    
+                    val fileSize = connection.contentLengthLong
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "File size: ${fileSize / 1024 / 1024} MB", Toast.LENGTH_LONG).show()
+                    }
+                    
+                    connection.inputStream.use { input ->
+                        FileOutputStream(outputFile).use { output ->
+                            val buffer = ByteArray(8192)
+                            var downloaded = 0L
+                            var count: Int
+                            
+                            while (input.read(buffer).also { count = it } != -1) {
+                                output.write(buffer, 0, count)
+                                downloaded += count
+                                
+                                if (downloaded % (10 * 1024 * 1024) == 0L) { // Every 10MB
+                                    val progress = (downloaded * 100 / fileSize).toInt()
+                                    runOnUiThread {
+                                        progressBar.progress = progress
+                                        progressText.text = "${downloaded / 1024 / 1024} MB / ${fileSize / 1024 / 1024} MB"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "Download complete!", Toast.LENGTH_LONG).show()
+                        statusText.text = "✓ Download Complete!"
+                        downloadButton.visibility = View.GONE
+                        progressBar.visibility = View.GONE
+                        progressText.visibility = View.GONE
+                    }
+                    
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "ERROR: ${e.message}", Toast.LENGTH_LONG).show()
+                        downloadButton.isEnabled = true
+                        progressBar.visibility = View.GONE
+                        progressText.visibility = View.GONE
                     }
                 }
-            } else {
-                Toast.makeText(this, "Android ${Build.VERSION.SDK_INT}, starting download...", Toast.LENGTH_LONG).show()
-                startDownloadService()
-            }
+            }.start()
+            
         } catch (e: Exception) {
-            Toast.makeText(this, "ERROR in downloadModel: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "EXCEPTION: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
     
