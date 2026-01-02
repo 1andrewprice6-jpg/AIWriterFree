@@ -154,49 +154,73 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun downloadModel() {
-        Toast.makeText(this, "Starting download...", Toast.LENGTH_SHORT).show()
-        
-        // Check notification permission for Android 13+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            when {
-                ContextCompat.checkSelfPermission(
+        try {
+            Toast.makeText(this, "Button clicked!", Toast.LENGTH_LONG).show()
+            
+            // Check if already downloaded
+            if (aiEngine.isModelDownloaded()) {
+                Toast.makeText(this, "Model already downloaded!", Toast.LENGTH_LONG).show()
+                updateUI()
+                return
+            }
+            
+            // Check notification permission for Android 13+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val hasPermission = ContextCompat.checkSelfPermission(
                     this,
                     Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED -> {
-                    startDownloadService()
+                ) == PackageManager.PERMISSION_GRANTED
+                
+                Toast.makeText(
+                    this, 
+                    "Android ${Build.VERSION.SDK_INT}, Notification permission: $hasPermission",
+                    Toast.LENGTH_LONG
+                ).show()
+                
+                when {
+                    hasPermission -> {
+                        startDownloadService()
+                    }
+                    else -> {
+                        Toast.makeText(this, "Requesting notification permission...", Toast.LENGTH_LONG).show()
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
                 }
-                else -> {
-                    Toast.makeText(this, "Requesting notification permission...", Toast.LENGTH_SHORT).show()
-                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                }
+            } else {
+                Toast.makeText(this, "Android ${Build.VERSION.SDK_INT}, starting download...", Toast.LENGTH_LONG).show()
+                startDownloadService()
             }
-        } else {
-            startDownloadService()
+        } catch (e: Exception) {
+            Toast.makeText(this, "ERROR in downloadModel: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
     
     private fun startDownloadService() {
-        Toast.makeText(this, "Starting foreground service...", Toast.LENGTH_SHORT).show()
-        
-        downloadButton.isEnabled = false
-        progressBar.visibility = View.VISIBLE
-        progressText.visibility = View.VISIBLE
-        statusText.text = "Downloading AI model..."
-        
-        val intent = Intent(this, ModelDownloadService::class.java).apply {
-            action = ModelDownloadService.ACTION_START_DOWNLOAD
-        }
-        
         try {
+            Toast.makeText(this, "startDownloadService() called", Toast.LENGTH_LONG).show()
+            
+            downloadButton.isEnabled = false
+            progressBar.visibility = View.VISIBLE
+            progressText.visibility = View.VISIBLE
+            statusText.text = "Downloading AI model..."
+            
+            val intent = Intent(this, ModelDownloadService::class.java).apply {
+                action = ModelDownloadService.ACTION_START_DOWNLOAD
+            }
+            
+            Toast.makeText(this, "Intent created, starting service...", Toast.LENGTH_LONG).show()
+            
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(intent)
-                Toast.makeText(this, "Service started (foreground)", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Foreground service started!", Toast.LENGTH_LONG).show()
             } else {
                 startService(intent)
-                Toast.makeText(this, "Service started", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Service started!", Toast.LENGTH_LONG).show()
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Error starting service: ${e.message}", Toast.LENGTH_LONG).show()
+            val errorMsg = "ERROR starting service: ${e.message}\n${e.stackTraceToString()}"
+            Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()
+            Log.e("MainActivity", errorMsg, e)
             downloadButton.isEnabled = true
             progressBar.visibility = View.GONE
             progressText.visibility = View.GONE

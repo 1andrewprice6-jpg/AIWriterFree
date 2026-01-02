@@ -69,14 +69,26 @@ class ModelDownloadService : Service() {
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d(TAG, "onStartCommand called with action: ${intent?.action}")
+        
         when (intent?.action) {
             ACTION_START_DOWNLOAD -> {
+                Log.d(TAG, "ACTION_START_DOWNLOAD received, isDownloading=$isDownloading")
                 if (!isDownloading) {
                     startDownload()
+                } else {
+                    Log.w(TAG, "Download already in progress")
                 }
             }
             ACTION_CANCEL_DOWNLOAD -> {
+                Log.d(TAG, "ACTION_CANCEL_DOWNLOAD received")
                 cancelDownload()
+            }
+            null -> {
+                Log.w(TAG, "onStartCommand called with null intent")
+            }
+            else -> {
+                Log.w(TAG, "Unknown action: ${intent.action}")
             }
         }
         return START_STICKY
@@ -87,18 +99,32 @@ class ModelDownloadService : Service() {
     }
     
     fun startDownload() {
+        Log.d(TAG, "startDownload() called")
+        
         if (isDownloading) {
             Log.d(TAG, "Download already in progress")
             return
         }
         
+        Log.d(TAG, "Starting download process...")
         isDownloading = true
         val notification = createNotification("Starting download...", 0, false)
-        startForeground(NOTIFICATION_ID, notification)
+        
+        try {
+            startForeground(NOTIFICATION_ID, notification)
+            Log.d(TAG, "Started foreground with notification")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start foreground", e)
+            isDownloading = false
+            return
+        }
         
         downloadJob = serviceScope.launch {
             try {
+                Log.d(TAG, "Download coroutine started")
                 val success = downloadModelFile()
+                Log.d(TAG, "Download completed with success=$success")
+                
                 withContext(Dispatchers.Main) {
                     if (success) {
                         notificationManager.notify(
