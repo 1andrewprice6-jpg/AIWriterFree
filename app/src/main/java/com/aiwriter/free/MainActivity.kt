@@ -159,30 +159,54 @@ class MainActivity : AppCompatActivity() {
     
     private fun downloadModel() {
         try {
-            Toast.makeText(this, "Button clicked!", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "1. Button clicked!", Toast.LENGTH_LONG).show()
             
             // Simple direct download test
             Thread {
                 try {
-                    Toast.makeText(this@MainActivity, "Starting download in thread...", Toast.LENGTH_LONG).show()
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "2. Thread created!", Toast.LENGTH_LONG).show()
+                    }
+                    
+                    Thread.sleep(500) // Small delay to ensure Toast shows
+                    
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "3. Creating file path...", Toast.LENGTH_LONG).show()
+                    }
                     
                     val outputFile = File(filesDir, "qwen2.5-1.5b-q4.onnx")
+                    
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "4. Creating URL...", Toast.LENGTH_LONG).show()
+                    }
+                    
                     val url = URL("https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-ONNX/resolve/main/qwen2.5-1.5b-instruct-q4.onnx")
                     
                     runOnUiThread {
-                        Toast.makeText(this@MainActivity, "Connecting to $url", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@MainActivity, "5. Updating UI...", Toast.LENGTH_LONG).show()
                         downloadButton.isEnabled = false
                         progressBar.visibility = View.VISIBLE
                         progressText.visibility = View.VISIBLE
                         statusText.text = "Downloading..."
                     }
                     
+                    Thread.sleep(500)
+                    
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "6. Opening connection to: huggingface.co", Toast.LENGTH_LONG).show()
+                    }
+                    
                     val connection = url.openConnection() as HttpURLConnection
+                    
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "7. Connecting...", Toast.LENGTH_LONG).show()
+                    }
+                    
                     connection.connect()
                     
                     val fileSize = connection.contentLengthLong
                     runOnUiThread {
-                        Toast.makeText(this@MainActivity, "File size: ${fileSize / 1024 / 1024} MB", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@MainActivity, "8. Connected! Size: ${fileSize / 1024 / 1024} MB", Toast.LENGTH_LONG).show()
                     }
                     
                     connection.inputStream.use { input ->
@@ -190,6 +214,10 @@ class MainActivity : AppCompatActivity() {
                             val buffer = ByteArray(8192)
                             var downloaded = 0L
                             var count: Int
+                            
+                            runOnUiThread {
+                                Toast.makeText(this@MainActivity, "9. Starting download...", Toast.LENGTH_LONG).show()
+                            }
                             
                             while (input.read(buffer).also { count = it } != -1) {
                                 output.write(buffer, 0, count)
@@ -200,6 +228,7 @@ class MainActivity : AppCompatActivity() {
                                     runOnUiThread {
                                         progressBar.progress = progress
                                         progressText.text = "${downloaded / 1024 / 1024} MB / ${fileSize / 1024 / 1024} MB"
+                                        Toast.makeText(this@MainActivity, "Downloaded: ${downloaded / 1024 / 1024} MB", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             }
@@ -207,7 +236,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     
                     runOnUiThread {
-                        Toast.makeText(this@MainActivity, "Download complete!", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@MainActivity, "✓ Download complete!", Toast.LENGTH_LONG).show()
                         statusText.text = "✓ Download Complete!"
                         downloadButton.visibility = View.GONE
                         progressBar.visibility = View.GONE
@@ -216,7 +245,8 @@ class MainActivity : AppCompatActivity() {
                     
                 } catch (e: Exception) {
                     runOnUiThread {
-                        Toast.makeText(this@MainActivity, "ERROR: ${e.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@MainActivity, "ERROR at step: ${e.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@MainActivity, "Error type: ${e.javaClass.simpleName}", Toast.LENGTH_LONG).show()
                         downloadButton.isEnabled = true
                         progressBar.visibility = View.GONE
                         progressText.visibility = View.GONE
@@ -224,8 +254,10 @@ class MainActivity : AppCompatActivity() {
                 }
             }.start()
             
+            Toast.makeText(this, "10. Thread started!", Toast.LENGTH_LONG).show()
+            
         } catch (e: Exception) {
-            Toast.makeText(this, "EXCEPTION: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "OUTER EXCEPTION: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
     
