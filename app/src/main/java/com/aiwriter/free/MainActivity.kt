@@ -154,6 +154,8 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun downloadModel() {
+        Toast.makeText(this, "Starting download...", Toast.LENGTH_SHORT).show()
+        
         // Check notification permission for Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             when {
@@ -164,6 +166,7 @@ class MainActivity : AppCompatActivity() {
                     startDownloadService()
                 }
                 else -> {
+                    Toast.makeText(this, "Requesting notification permission...", Toast.LENGTH_SHORT).show()
                     notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
@@ -173,6 +176,8 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun startDownloadService() {
+        Toast.makeText(this, "Starting foreground service...", Toast.LENGTH_SHORT).show()
+        
         downloadButton.isEnabled = false
         progressBar.visibility = View.VISIBLE
         progressText.visibility = View.VISIBLE
@@ -182,10 +187,19 @@ class MainActivity : AppCompatActivity() {
             action = ModelDownloadService.ACTION_START_DOWNLOAD
         }
         
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+                Toast.makeText(this, "Service started (foreground)", Toast.LENGTH_SHORT).show()
+            } else {
+                startService(intent)
+                Toast.makeText(this, "Service started", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error starting service: ${e.message}", Toast.LENGTH_LONG).show()
+            downloadButton.isEnabled = true
+            progressBar.visibility = View.GONE
+            progressText.visibility = View.GONE
         }
     }
     
