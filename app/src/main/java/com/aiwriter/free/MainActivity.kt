@@ -143,18 +143,20 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun updateUI() {
-        if (aiEngine.isModelDownloaded()) {
-            statusText.text = "✓ AI Model Ready\n\nSelect text anywhere and choose 'AI Writer' from the menu."
-            downloadButton.visibility = View.GONE
-            progressBar.visibility = View.GONE
-            progressText.visibility = View.GONE
-        } else {
-            statusText.text = "AI Writer needs to download a 1.5GB model file.\n\nThis is a one-time download."
-            downloadButton.visibility = View.VISIBLE
-            downloadButton.text = "Download Model (1.5GB)"
-            progressBar.visibility = View.GONE
-            progressText.visibility = View.GONE
-        }
+        // Cloud-based AI version - always ready
+        statusText.text = """✓ AI Writer Ready
+            
+Uses Cloud AI (no download!)
+
+Select text anywhere and choose:
+• AI Writer (requires internet)
+• Formatting (works offline)
+
+All 30+ formatting options work instantly!""".trimIndent()
+        
+        downloadButton.visibility = View.GONE
+        progressBar.visibility = View.GONE
+        progressText.visibility = View.GONE
     }
     
     private fun downloadModel() {
