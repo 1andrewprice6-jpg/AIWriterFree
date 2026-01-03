@@ -271,3 +271,4 @@ This project is free and open-source.
 **Min Android**: 8.0 (API 26)  
 **Target Android**: 14 (API 34)  
 **Model Size**: 1.5GB
+# Force rebuild
