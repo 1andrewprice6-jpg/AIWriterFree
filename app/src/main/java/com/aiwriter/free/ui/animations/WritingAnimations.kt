@@ -4,7 +4,6 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 
 val aiEnterTransition: EnterTransition = fadeIn(tween(320)) +
     slideInVertically(tween(320)) { it / 5 }
